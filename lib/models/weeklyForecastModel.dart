@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'package:hive/hive.dart';
+
+part 'weeklyForecastModel.g.dart';
+
 /// weekDay : "Mon"
 /// date : "12 july"
 /// condition : "Sunny"
@@ -12,7 +16,8 @@ WeeklyForecastModel weeklyForecastModelFromJson(String str) =>
 String weeklyForecastModelToJson(WeeklyForecastModel data) =>
     json.encode(data.toJson());
 
-class WeeklyForecastModel {
+@HiveType(typeId: 3)
+class WeeklyForecastModel extends HiveObject {
   WeeklyForecastModel({
     String? weekDay,
     String? date,
@@ -35,10 +40,15 @@ class WeeklyForecastModel {
     _rainProb = json['rainProb'];
   }
 
+  @HiveField(0)
   String? _weekDay;
+  @HiveField(1)
   String? _date;
+  @HiveField(2)
   String? _condition;
+  @HiveField(3)
   String? _temp;
+  @HiveField(4)
   String? _rainProb;
 
   WeeklyForecastModel copyWith({

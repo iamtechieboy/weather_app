@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:weather_app/logic/localData.dart';
 import 'package:weather_app/logic/networkLayer.dart';
 import 'package:weather_app/models/citiesModel.dart';
 import 'package:weather_app/models/currentDayModel.dart';
 import 'package:weather_app/models/weeklyForecastModel.dart';
+import 'package:weather_app/utils/constants.dart';
 import 'package:weather_app/utils/utilWeather.dart';
 
 class WeatherMainPage extends StatefulWidget {
@@ -20,6 +22,8 @@ class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
   bool isLoadCompleted = false;
   String dropdownValue = "";
   String _index = "";
+  NetworkLayer networkLayer = NetworkLayer();
+  LocalData localData = LocalData();
 
   @override
   void initState() {
@@ -28,8 +32,12 @@ class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
   }
 
   Future loadData() async {
-    NetworkLayer networkLayer = NetworkLayer();
-    citiesModel = await networkLayer.loadCities();
+    if (await localData.isEmptyBox<CitiesModel>(citiesBox)) {
+      citiesModel = await networkLayer.loadCities();
+      localData.saveCities(citiesModel!);
+    } else {
+      citiesModel = await localData.getCitiesModel();
+    }
     dropdownValue = citiesModel![0].cityName!;
     loadWeather(citiesModel![0]);
   }
@@ -39,29 +47,48 @@ class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
       currentDayModel = null;
       weeklyModel = null;
     });
+    if (await localData.isEmptyBox<CurrentDayModel>(dailyBox)) {
+      networkLayer
+          .loadCurrentWeather(citiesModel.cityName!, citiesModel.linkName!)
+          .then(
+            (value) => {
+              setState(
+                () {
+                  currentDayModel = value;
+                  localData.addBox(dailyBox, currentDayModel);
+                  currentDayModel;
+                },
+              ),
+            },
+          );
+    } else {
+      currentDayModel = await localData.getCurrentDayModel();
+      setState(
+        () {
+          currentDayModel;
+        },
+      );
+    }
 
-    NetworkLayer networkLayer = NetworkLayer();
-    networkLayer
-        .loadCurrentWeather(citiesModel.cityName!, citiesModel.linkName!)
-        .then(
-          (value) => {
+    if (await localData.isEmptyBox<WeeklyForecastModel>(weeklyBox)) {
+      networkLayer.loadWeeklyForecast(citiesModel.linkName!).then((value) => {
             setState(
               () {
-                currentDayModel = value;
-                currentDayModel;
+                weeklyModel = value;
+                localData.addAllBox(weeklyBox, weeklyModel!);
+                _index = weeklyModel![0].date!;
+                weeklyModel;
               },
             ),
-          },
-        );
-    networkLayer.loadWeeklyForecast(citiesModel.linkName!).then((value) => {
-          setState(
-            () {
-              weeklyModel = value;
-              _index = weeklyModel![0].date!;
-              weeklyModel;
-            },
-          ),
-        });
+          });
+    } else {
+      weeklyModel = await localData.getWeekly();
+      setState(
+        () {
+          weeklyModel;
+        },
+      );
+    }
   }
 
   @override

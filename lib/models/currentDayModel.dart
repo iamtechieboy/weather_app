@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:hive/hive.dart';
 /// cityName : "Tashkent"
 /// date : "13 July"
 /// situation : "Sunny"
@@ -11,9 +13,13 @@ import 'dart:convert';
 /// temp : "+33"
 /// tempN : "+23"
 
+part 'currentDayModel.g.dart';
+
 CurrentDayModel currentDayModelFromJson(String str) => CurrentDayModel.fromJson(json.decode(str));
 String currentDayModelToJson(CurrentDayModel data) => json.encode(data.toJson());
-class CurrentDayModel {
+
+@HiveType(typeId: 2)
+class CurrentDayModel extends HiveObject {
   CurrentDayModel({
       String? cityName, 
       String? date, 
@@ -52,17 +58,30 @@ class CurrentDayModel {
     _temp = json['temp'];
     _tempN = json['tempN'];
   }
+
+  @HiveField(0)
   String? _cityName;
+  @HiveField(1)
   String? _date;
+  @HiveField(2)
   String? _situation;
+  @HiveField(3)
   String? _humidity;
+  @HiveField(4)
   String? _wind;
+  @HiveField(5)
   String? _pressure;
+  @HiveField(6)
   String? _moon;
+  @HiveField(7)
   String? _sunset;
+  @HiveField(8)
   String? _sunrise;
+  @HiveField(9)
   String? _temp;
+  @HiveField(10)
   String? _tempN;
+
 CurrentDayModel copyWith({  String? cityName,
   String? date,
   String? situation,
