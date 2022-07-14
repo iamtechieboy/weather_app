@@ -16,6 +16,8 @@ mixin HiveUtils {
 
   Future<Box<T>> getAllBox<T>(String boxName) async {
     Box<T> box = await isCheckOpenBox<T>(boxName);
+    // var result = box;
+    // box.close();
     return Future<Box<T>>.value(box);
   }
 
