@@ -102,7 +102,7 @@ mixin HiveUtil {
           encryptionCipher:
               encrypKey != null ? HiveAesCipher(encrypKey) : null);
     }
-    return Future<List<T>?>.value(box.values.toList());
+    return Future<List<T>?>.value(box.toMap().values.toList());
   }
 
   Future<List<T>?> getLazyBoxAllValue<T>(String boxKey,

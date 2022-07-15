@@ -55,12 +55,12 @@ class _WeatherMainPageState extends State<WeatherMainPage>
           currentDayModel;
         },
       );
-      weeklyModel = await getBoxAllValue<WeeklyForecastModel>(weeklyBox);
-      setState(
-        () {
-          weeklyModel;
-        },
-      );
+      // weeklyModel = await getBoxAllValue<WeeklyForecastModel>(weeklyBox);
+      // setState(
+      //   () {
+      //     weeklyModel;
+      //   },
+      // );
     } else {
       networkLayer
           .loadCurrentWeather(citiesModel.cityName!, citiesModel.linkName!)
@@ -76,17 +76,18 @@ class _WeatherMainPageState extends State<WeatherMainPage>
               ),
             },
           );
-      networkLayer.loadWeeklyForecast(citiesModel.linkName!).then((value) => {
-            setState(
-              () {
-                weeklyModel = value;
-                addAllBox<WeeklyForecastModel>(weeklyBox, weeklyModel!);
-                _index = weeklyModel![0].date!;
-                weeklyModel;
-              },
-            ),
-          });
     }
+    networkLayer.loadWeeklyForecast(citiesModel.linkName!).then((value) => {
+      setState(
+            () {
+          weeklyModel = value;
+          // deleteBox(weeklyBox);
+          // addAllBox<WeeklyForecastModel>(weeklyBox, weeklyModel!,);
+          _index = weeklyModel![0].date!;
+          weeklyModel;
+        },
+      ),
+    });
   }
 
   Future<bool> loadLocalDate() async {
