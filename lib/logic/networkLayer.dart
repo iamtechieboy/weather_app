@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:http/http.dart';
+import 'package:intl/intl.dart';
 import 'package:weather_app/models/citiesModel.dart';
 import 'package:weather_app/models/weeklyForecastModel.dart';
 
@@ -79,8 +80,7 @@ class NetworkLayer {
             .text
             .split(":")
             .last
-            .trim()
-            ;
+            .trim();
         String moon = row
             .querySelector("div.col-2")!
             .querySelectorAll("p,p")[0]
@@ -101,7 +101,11 @@ class NetworkLayer {
             .split(":");
         String sunset = "${sunsetRow[1]}:${sunsetRow[2]}".trim();
 
+        final format = DateFormat("dd.MM.yyyy");
+        var date = format.format(DateTime.now());
+
         return CurrentDayModel(
+            loadDate: date,
             cityName: cityName,
             date: today,
             temp: temp,

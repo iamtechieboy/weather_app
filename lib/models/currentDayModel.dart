@@ -1,8 +1,12 @@
 import 'dart:convert';
 
-import 'package:hive/hive.dart';
-/// cityName : "Tashkent"
+import 'package:hive_flutter/adapters.dart';
+
+part 'currentDayModel.g.dart';
+
+/// loadDate : "12,15,15"
 /// date : "13 July"
+/// cityName : "Tashkent"
 /// situation : "Sunny"
 /// humidity : "23"
 /// wind : "4.3 m/s"
@@ -13,27 +17,31 @@ import 'package:hive/hive.dart';
 /// temp : "+33"
 /// tempN : "+23"
 
-part 'currentDayModel.g.dart';
+CurrentDayModel currentDayModelFromJson(String str) =>
+    CurrentDayModel.fromJson(json.decode(str));
 
-CurrentDayModel currentDayModelFromJson(String str) => CurrentDayModel.fromJson(json.decode(str));
-String currentDayModelToJson(CurrentDayModel data) => json.encode(data.toJson());
+String currentDayModelToJson(CurrentDayModel data) =>
+    json.encode(data.toJson());
 
 @HiveType(typeId: 2)
 class CurrentDayModel extends HiveObject {
   CurrentDayModel({
-      String? cityName, 
-      String? date, 
-      String? situation, 
-      String? humidity, 
-      String? wind, 
-      String? pressure, 
-      String? moon, 
-      String? sunset, 
-      String? sunrise, 
-      String? temp, 
-      String? tempN,}){
-    _cityName = cityName;
+    String? loadDate,
+    String? date,
+    String? cityName,
+    String? situation,
+    String? humidity,
+    String? wind,
+    String? pressure,
+    String? moon,
+    String? sunset,
+    String? sunrise,
+    String? temp,
+    String? tempN,
+  }) {
+    _loadDate = loadDate;
     _date = date;
+    _cityName = cityName;
     _situation = situation;
     _humidity = humidity;
     _wind = wind;
@@ -43,11 +51,12 @@ class CurrentDayModel extends HiveObject {
     _sunrise = sunrise;
     _temp = temp;
     _tempN = tempN;
-}
+  }
 
   CurrentDayModel.fromJson(dynamic json) {
-    _cityName = json['cityName'];
+    _loadDate = json['loadDate'];
     _date = json['date'];
+    _cityName = json['cityName'];
     _situation = json['situation'];
     _humidity = json['humidity'];
     _wind = json['wind'];
@@ -60,67 +69,88 @@ class CurrentDayModel extends HiveObject {
   }
 
   @HiveField(0)
-  String? _cityName;
+  String? _loadDate;
   @HiveField(1)
   String? _date;
   @HiveField(2)
-  String? _situation;
+  String? _cityName;
   @HiveField(3)
-  String? _humidity;
+  String? _situation;
   @HiveField(4)
-  String? _wind;
+  String? _humidity;
   @HiveField(5)
-  String? _pressure;
+  String? _wind;
   @HiveField(6)
-  String? _moon;
+  String? _pressure;
   @HiveField(7)
-  String? _sunset;
+  String? _moon;
   @HiveField(8)
-  String? _sunrise;
+  String? _sunset;
   @HiveField(9)
-  String? _temp;
+  String? _sunrise;
   @HiveField(10)
+  String? _temp;
+  @HiveField(11)
   String? _tempN;
 
-CurrentDayModel copyWith({  String? cityName,
-  String? date,
-  String? situation,
-  String? humidity,
-  String? wind,
-  String? pressure,
-  String? moon,
-  String? sunset,
-  String? sunrise,
-  String? temp,
-  String? tempN,
-}) => CurrentDayModel(  cityName: cityName ?? _cityName,
-  date: date ?? _date,
-  situation: situation ?? _situation,
-  humidity: humidity ?? _humidity,
-  wind: wind ?? _wind,
-  pressure: pressure ?? _pressure,
-  moon: moon ?? _moon,
-  sunset: sunset ?? _sunset,
-  sunrise: sunrise ?? _sunrise,
-  temp: temp ?? _temp,
-  tempN: tempN ?? _tempN,
-);
-  String? get cityName => _cityName;
+  CurrentDayModel copyWith({
+    String? loadDate,
+    String? date,
+    String? cityName,
+    String? situation,
+    String? humidity,
+    String? wind,
+    String? pressure,
+    String? moon,
+    String? sunset,
+    String? sunrise,
+    String? temp,
+    String? tempN,
+  }) =>
+      CurrentDayModel(
+        loadDate: loadDate ?? _loadDate,
+        date: date ?? _date,
+        cityName: cityName ?? _cityName,
+        situation: situation ?? _situation,
+        humidity: humidity ?? _humidity,
+        wind: wind ?? _wind,
+        pressure: pressure ?? _pressure,
+        moon: moon ?? _moon,
+        sunset: sunset ?? _sunset,
+        sunrise: sunrise ?? _sunrise,
+        temp: temp ?? _temp,
+        tempN: tempN ?? _tempN,
+      );
+
+  String? get loadDate => _loadDate;
+
   String? get date => _date;
+
+  String? get cityName => _cityName;
+
   String? get situation => _situation;
+
   String? get humidity => _humidity;
+
   String? get wind => _wind;
+
   String? get pressure => _pressure;
+
   String? get moon => _moon;
+
   String? get sunset => _sunset;
+
   String? get sunrise => _sunrise;
+
   String? get temp => _temp;
+
   String? get tempN => _tempN;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    map['cityName'] = _cityName;
+    map['loadDate'] = _loadDate;
     map['date'] = _date;
+    map['cityName'] = _cityName;
     map['situation'] = _situation;
     map['humidity'] = _humidity;
     map['wind'] = _wind;
@@ -132,5 +162,4 @@ CurrentDayModel copyWith({  String? cityName,
     map['tempN'] = _tempN;
     return map;
   }
-
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:weather_app/logic/localData.dart';
+import 'package:intl/intl.dart';
 import 'package:weather_app/logic/networkLayer.dart';
 import 'package:weather_app/models/citiesModel.dart';
 import 'package:weather_app/models/currentDayModel.dart';
 import 'package:weather_app/models/weeklyForecastModel.dart';
+import 'package:weather_app/utils/HiveUtils.dart';
 import 'package:weather_app/utils/constants.dart';
 import 'package:weather_app/utils/utilWeather.dart';
 
@@ -15,7 +16,8 @@ class WeatherMainPage extends StatefulWidget {
   State<WeatherMainPage> createState() => _WeatherMainPageState();
 }
 
-class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
+class _WeatherMainPageState extends State<WeatherMainPage>
+    with UtilWeather, HiveUtil {
   List<CitiesModel>? citiesModel;
   List<WeeklyForecastModel>? weeklyModel;
   CurrentDayModel? currentDayModel;
@@ -23,7 +25,6 @@ class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
   String dropdownValue = "";
   String _index = "";
   NetworkLayer networkLayer = NetworkLayer();
-  LocalData localData = LocalData();
 
   @override
   void initState() {
@@ -32,11 +33,11 @@ class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
   }
 
   Future loadData() async {
-    if (await localData.isEmptyBox<CitiesModel>(citiesBox)) {
+    if (await isEmptyBox<CitiesModel>(citiesBox)) {
       citiesModel = await networkLayer.loadCities();
-      localData.saveCities(citiesModel!);
+      addAllBox<CitiesModel>(citiesBox, citiesModel!);
     } else {
-      citiesModel = await localData.getCitiesModel();
+      citiesModel = await getBoxAllValue(citiesBox);
     }
     dropdownValue = citiesModel![0].cityName!;
     loadWeather(citiesModel![0]);
@@ -47,7 +48,20 @@ class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
       currentDayModel = null;
       weeklyModel = null;
     });
-    if (await localData.isEmptyBox<CurrentDayModel>(dailyBox)) {
+    if (await loadLocalDate()) {
+      currentDayModel = await getBox<CurrentDayModel>(dailyBox, key: dropdownValue);
+      setState(
+        () {
+          currentDayModel;
+        },
+      );
+      weeklyModel = await getBoxAllValue<WeeklyForecastModel>(weeklyBox);
+      setState(
+        () {
+          weeklyModel;
+        },
+      );
+    } else {
       networkLayer
           .loadCurrentWeather(citiesModel.cityName!, citiesModel.linkName!)
           .then(
@@ -55,39 +69,39 @@ class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
               setState(
                 () {
                   currentDayModel = value;
-                  localData.addBox(dailyBox, currentDayModel);
+                  saveBox<CurrentDayModel>(dailyBox, currentDayModel!,
+                      key: dropdownValue);
                   currentDayModel;
                 },
               ),
             },
           );
-    } else {
-      currentDayModel = await localData.getCurrentDayModel();
-      setState(
-        () {
-          currentDayModel;
-        },
-      );
-    }
-
-    if (await localData.isEmptyBox<WeeklyForecastModel>(weeklyBox)) {
       networkLayer.loadWeeklyForecast(citiesModel.linkName!).then((value) => {
             setState(
               () {
                 weeklyModel = value;
-                localData.addAllBox(weeklyBox, weeklyModel!);
+                addAllBox<WeeklyForecastModel>(weeklyBox, weeklyModel!);
                 _index = weeklyModel![0].date!;
                 weeklyModel;
               },
             ),
           });
-    } else {
-      weeklyModel = await localData.getWeekly();
-      setState(
-        () {
-          weeklyModel;
-        },
-      );
+    }
+  }
+
+  Future<bool> loadLocalDate() async {
+    try {
+      final format = DateFormat("dd.MM.yyyy");
+      var date = format.format(DateTime.now());
+      var model = await getBox<CurrentDayModel>(dailyBox, key: dropdownValue);
+      if (model!.loadDate == date) {
+        currentDayModel = model;
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
     }
   }
 
@@ -494,14 +508,14 @@ class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
           ),
           underline: null,
           onChanged: (String? newValue) {
+            setState(() {
+              dropdownValue = newValue!;
+            });
             for (var element in citiesModel) {
               if (element.cityName == newValue) {
                 loadWeather(element);
               }
             }
-            setState(() {
-              dropdownValue = newValue!;
-            });
           },
           items: citiesModel.map((CitiesModel e) {
             return DropdownMenuItem(
