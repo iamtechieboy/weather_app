@@ -1,7 +1,7 @@
 # Simpe Weather app with UI 😍
 
 App is fully open source 😎. And you can use any port of it 
-and if you like it please give me thums 👍🏻 up beacuse it gives me motivation to keep making like this apps. 
+and if you like it please give me thumbs up 👍 beacuse it gives me motivation to keep making like this apps. 
 
 If you like more coding suggestions and tips for your learning jouney 
 I also share my experiences of learning on Instagram : https://www.instagram.com/isroiljon_abduvakhobov/
