@@ -1,8 +1,7 @@
 import 'dart:convert';
-
 import 'package:hive/hive.dart';
 
-part 'citiesModel.g.dart';
+part 'cities_model.g.dart';
 
 /// cityName : "Tashkent"
 /// linkName : "tashkent"

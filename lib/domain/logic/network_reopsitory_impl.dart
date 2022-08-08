@@ -3,18 +3,20 @@ import 'dart:io';
 import 'package:html/parser.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
-import 'package:weather_app/models/citiesModel.dart';
-import 'package:weather_app/models/weeklyForecastModel.dart';
+import 'package:weather_app/domain/logic/network_repository.dart';
+import 'package:weather_app/domain/providers/weather_provider.dart';
+import 'package:weather_app/utils/constants.dart';
 
-import '../models/currentDayModel.dart';
-import '../models/citiesModel.dart';
+import '../models/cities_model.dart';
+import '../models/current_day_model.dart';
+import '../models/weekly_forecast_model.dart';
 
-class NetworkLayer {
-  String BASE_URL = 'https://obhavo.uz/';
+class NetworkRepositoryImpl implements NetworkRepository {
 
-  Future<List<CitiesModel>?> loadCities() async {
+  @override
+  Future<List<CitiesModel>?> loadingCitiesName() async {
     try {
-      var response = await get(Uri.parse(BASE_URL));
+      var response = await get(Uri.parse(baseUrl));
       if (response.statusCode == 200) {
         List<CitiesModel> mapData = [];
         var row = parse(response.body)
@@ -24,7 +26,7 @@ class NetworkLayer {
         var cities = row.first.querySelectorAll("a,a");
         for (var city in cities) {
           String? cityName = city.nodes.first.text.toString();
-          String? cityLink = city.attributes['href']?.replaceAll(BASE_URL, "");
+          String? cityLink = city.attributes['href']?.replaceAll(baseUrl, "");
           mapData.add(CitiesModel(cityName: cityName, linkName: cityLink));
         }
         return mapData;
@@ -37,10 +39,11 @@ class NetworkLayer {
     return null;
   }
 
-  Future<CurrentDayModel?> loadCurrentWeather(
+  @override
+  Future<CurrentDayModel?> loadingCurrentDayWeatherForecast(
       String cityName, String link) async {
     try {
-      var response = await get(Uri.parse("$BASE_URL$link"));
+      var response = await get(Uri.parse("$baseUrl$link"));
       if (response.statusCode == 200) {
         var row = parse(response.body).querySelector('div.padd-block');
         String today =
@@ -126,9 +129,11 @@ class NetworkLayer {
     return null;
   }
 
-  Future<List<WeeklyForecastModel>?> loadWeeklyForecast(String link) async {
+  @override
+  Future<List<WeeklyForecastModel>?> loadingWeeklyWeatherForecast(
+      String cityLink) async {
     try {
-      var response = await get(Uri.parse("$BASE_URL$link"));
+      var response = await get(Uri.parse("$baseUrl$cityLink"));
       if (response.statusCode == 200) {
         List<WeeklyForecastModel> weeklyForecastModel = [];
         var table = parse(response.body).querySelector('table.weather-table');
@@ -164,4 +169,5 @@ class NetworkLayer {
     }
     return null;
   }
+
 }

@@ -1,5 +1,3 @@
-// Colors
-
 import 'package:flutter/cupertino.dart';
 
 var containerGradient = const LinearGradient(
@@ -21,3 +19,5 @@ var containerBoxShadow = [
 const String citiesBox = "cities_box";
 const String dailyBox = "daily_box";
 const String weeklyBox = "weekly_box";
+
+const String baseUrl = 'https://obhavo.uz/';

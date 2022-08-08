@@ -1,10 +1,9 @@
 import 'dart:developer';
-
 import 'package:hive/hive.dart';
 
 mixin HiveUtil {
-
-  Future<void> saveBox<T>(String boxKey, T data, {dynamic key, List<int>? encrypKey}) async {
+  Future<void> saveBox<T>(String boxKey, T data,
+      {dynamic key, List<int>? encrypKey}) async {
     late Box<T> box;
     if (Hive.isBoxOpen(boxKey)) {
       box = Hive.box<T>(boxKey);
@@ -41,14 +40,15 @@ mixin HiveUtil {
     await box.add(data);
   }
 
-  Future<void> addAllBox<T>(String boxKey, List<T> data, {List<int>? encrypKey}) async {
+  Future<void> addAllBox<T>(String boxKey, List<T> data,
+      {List<int>? encrypKey}) async {
     late Box<T> box;
     if (Hive.isBoxOpen(boxKey)) {
       box = Hive.box<T>(boxKey);
     } else {
       box = await Hive.openBox<T>(boxKey,
           encryptionCipher:
-          encrypKey != null ? HiveAesCipher(encrypKey) : null);
+              encrypKey != null ? HiveAesCipher(encrypKey) : null);
     }
     await box.addAll(data);
   }

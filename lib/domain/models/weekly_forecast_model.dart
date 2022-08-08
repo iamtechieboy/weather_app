@@ -1,8 +1,7 @@
 import 'dart:convert';
-
 import 'package:hive/hive.dart';
 
-part 'weeklyForecastModel.g.dart';
+part 'weekly_forecast_model.g.dart';
 
 /// weekDay : "Mon"
 /// date : "12 july"

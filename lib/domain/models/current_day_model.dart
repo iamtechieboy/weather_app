@@ -1,8 +1,6 @@
 import 'dart:convert';
-
 import 'package:hive_flutter/adapters.dart';
-
-part 'currentDayModel.g.dart';
+part 'current_day_model.g.dart';
 
 /// loadDate : "12,15,15"
 /// date : "13 July"

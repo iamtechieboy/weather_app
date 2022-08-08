@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:weather_app/logic/networkLayer.dart';
-import 'package:weather_app/models/citiesModel.dart';
-import 'package:weather_app/models/currentDayModel.dart';
-import 'package:weather_app/models/weeklyForecastModel.dart';
-import 'package:weather_app/utils/HiveUtils.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/domain/models/cities_model.dart';
+import 'package:weather_app/domain/models/current_day_model.dart';
+import 'package:weather_app/domain/models/weekly_forecast_model.dart';
+import 'package:weather_app/domain/providers/weather_provider.dart';
+import 'package:weather_app/utils/hive_utils.dart';
 import 'package:weather_app/utils/constants.dart';
-import 'package:weather_app/utils/utilWeather.dart';
+import 'package:weather_app/components/util_weather.dart';
+import '../components/gradient_text.dart';
 
 class WeatherMainPage extends StatefulWidget {
   const WeatherMainPage({Key? key}) : super(key: key);
@@ -16,212 +18,141 @@ class WeatherMainPage extends StatefulWidget {
   State<WeatherMainPage> createState() => _WeatherMainPageState();
 }
 
-class _WeatherMainPageState extends State<WeatherMainPage>
-    with UtilWeather, HiveUtil {
-  List<CitiesModel>? citiesModel;
-  List<WeeklyForecastModel>? weeklyModel;
-  CurrentDayModel? currentDayModel;
-  bool isLoadCompleted = false;
-  String dropdownValue = "";
-  String _index = "";
-  NetworkLayer networkLayer = NetworkLayer();
-
-  @override
-  void initState() {
-    loadData();
-    super.initState();
-  }
-
-  Future loadData() async {
-    if (await isEmptyBox<CitiesModel>(citiesBox)) {
-      citiesModel = await networkLayer.loadCities();
-      addAllBox<CitiesModel>(citiesBox, citiesModel!);
-    } else {
-      citiesModel = await getBoxAllValue(citiesBox);
-    }
-    dropdownValue = citiesModel![0].cityName!;
-    loadWeather(citiesModel![0]);
-  }
-
-  Future loadWeather(CitiesModel citiesModel) async {
-    setState(() {
-      currentDayModel = null;
-      weeklyModel = null;
-    });
-    if (await loadLocalDate()) {
-      currentDayModel = await getBox<CurrentDayModel>(dailyBox, key: dropdownValue);
-      setState(
-        () {
-          currentDayModel;
-        },
-      );
-      // weeklyModel = await getBoxAllValue<WeeklyForecastModel>(weeklyBox);
-      // setState(
-      //   () {
-      //     weeklyModel;
-      //   },
-      // );
-    } else {
-      networkLayer
-          .loadCurrentWeather(citiesModel.cityName!, citiesModel.linkName!)
-          .then(
-            (value) => {
-              setState(
-                () {
-                  currentDayModel = value;
-                  saveBox<CurrentDayModel>(dailyBox, currentDayModel!,
-                      key: dropdownValue);
-                  currentDayModel;
-                },
-              ),
-            },
-          );
-    }
-    networkLayer.loadWeeklyForecast(citiesModel.linkName!).then((value) => {
-      setState(
-            () {
-          weeklyModel = value;
-          // deleteBox(weeklyBox);
-          // addAllBox<WeeklyForecastModel>(weeklyBox, weeklyModel!,);
-          _index = weeklyModel![0].date!;
-          weeklyModel;
-        },
-      ),
-    });
-  }
-
-  Future<bool> loadLocalDate() async {
-    try {
-      final format = DateFormat("dd.MM.yyyy");
-      var date = format.format(DateTime.now());
-      var model = await getBox<CurrentDayModel>(dailyBox, key: dropdownValue);
-      if (model!.loadDate == date) {
-        currentDayModel = model;
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      return false;
-    }
-  }
-
+class _WeatherMainPageState extends State<WeatherMainPage> with UtilWeather {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xffFEF7FF), Color(0xffFCEBFF)],
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 15, right: 15, top: 10, bottom: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: 50,
-                      width: 50,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x289a60e5),
-                            blurRadius: 30,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Image(
-                          height: 20,
-                          width: 20,
-                          image: AssetImage("assets/ic_setting.png"),
-                        ),
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
+    return Consumer<WeatherProvider>(
+      builder: (context, provider, child) {
+        if (provider.citiesModel == null) {
+          provider.initialLoadingData();
+        } else {
+          null;
+        }
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xffFEF7FF), Color(0xffFCEBFF)],
+            ),
+          ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        left: 15, right: 15, top: 10, bottom: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on_rounded,
-                              color: Color(0xff6764EF),
+                        Container(
+                          height: 50,
+                          width: 50,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x289a60e5),
+                                blurRadius: 30,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Image(
+                              height: 20,
+                              width: 20,
+                              image: AssetImage("assets/ic_setting.png"),
                             ),
-                            citiesModel != null
-                                ? location(citiesModel!)
-                                : const Padding(
-                                    padding:
-                                        EdgeInsets.only(top: 5, bottom: 10),
-                                    child: Text(
-                                      "Searching...",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.black,
+                          ),
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on_rounded,
+                                  color: Color(0xff6764EF),
+                                ),
+                                provider.citiesModel != null
+                                    ? locationWidgetForAppBar(
+                                        provider.citiesModel!, provider)
+                                    : const Padding(
+                                        padding:
+                                            EdgeInsets.only(top: 5, bottom: 10),
+                                        child: Text(
+                                          "Searching...",
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
+                              ],
+                            ),
+                            Container(
+                              height: 22,
+                              padding:
+                                  const EdgeInsets.only(right: 10, left: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xffE662E5),
+                                    Color(0xff5364F0)
+                                  ],
+                                  transform: GradientRotation(45),
+                                ),
+                              ),
+                              child: provider.currentDayModel == null
+                                  ? loadingWidget()
+                                  : updatedWidget(),
+                            )
                           ],
                         ),
                         Container(
-                          height: 22,
-                          padding: const EdgeInsets.only(right: 10, left: 10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xffE662E5), Color(0xff5364F0)],
-                              transform: GradientRotation(45),
-                            ),
-                          ),
-                          child:
-                              currentDayModel == null ? loading() : updated(),
-                        )
-                      ],
-                    ),
-                    Container(
-                      height: 50,
-                      width: 50,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x289a60e5),
-                              blurRadius: 30,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                          border: Border.all(color: Colors.white, width: 2)),
-                      child: const Center(
-                        child: Image(
                           height: 50,
                           width: 50,
-                          image: AssetImage("assets/profile.png"),
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x289a60e5),
+                                  blurRadius: 30,
+                                  offset: Offset(0, 5),
+                                ),
+                              ],
+                              border:
+                                  Border.all(color: Colors.white, width: 2)),
+                          child: const Center(
+                            child: Image(
+                              height: 50,
+                              width: 50,
+                              image: AssetImage("assets/profile.png"),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  provider.currentDayModel != null
+                      ? fullWeatherBody(provider)
+                      : Container(),
+                ],
               ),
-              currentDayModel != null ? bodyFull() : Container(),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget bodyFull() {
+  Widget fullWeatherBody(WeatherProvider provider) {
     return Flexible(
       child: ListView(
         padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 5),
@@ -256,7 +187,7 @@ class _WeatherMainPageState extends State<WeatherMainPage>
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              "Bugun \n${currentDayModel!.date!}",
+                              "Bugun \n${provider.currentDayModel!.date!}",
                               style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
@@ -266,7 +197,7 @@ class _WeatherMainPageState extends State<WeatherMainPage>
                             Padding(
                               padding: const EdgeInsets.only(top: 16),
                               child: GradientText(
-                                currentDayModel!.temp!,
+                                provider.currentDayModel!.temp!,
                                 style: const TextStyle(
                                     fontSize: 75,
                                     color: Colors.white,
@@ -281,7 +212,7 @@ class _WeatherMainPageState extends State<WeatherMainPage>
                               ),
                             ),
                             Text(
-                              "Tun : ${currentDayModel!.tempN!}",
+                              "Tun : ${provider.currentDayModel!.tempN!}",
                               style: const TextStyle(
                                   fontSize: 15,
                                   color: Colors.white,
@@ -299,7 +230,7 @@ class _WeatherMainPageState extends State<WeatherMainPage>
                   child: Align(
                     alignment: Alignment.bottomLeft,
                     child: Text(
-                      currentDayModel!.situation!,
+                      provider.currentDayModel!.situation!,
                       style: const TextStyle(
                           fontSize: 26,
                           color: Colors.white,
@@ -311,7 +242,7 @@ class _WeatherMainPageState extends State<WeatherMainPage>
                 Padding(
                   padding: const EdgeInsets.only(left: 22),
                   child: Image(
-                    image: weatherCond(currentDayModel!.situation!),
+                    image: weatherCond(provider.currentDayModel!.situation!),
                     height: 160,
                     width: 160,
                   ),
@@ -387,11 +318,11 @@ class _WeatherMainPageState extends State<WeatherMainPage>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               iconicText("ic_waves", "Bosim",
-                                  currentDayModel!.pressure!),
+                                  provider.currentDayModel!.pressure!),
                               iconicText("ic_cloud_wind", "Shamol",
-                                  currentDayModel!.wind!),
+                                  provider.currentDayModel!.wind!),
                               iconicText("ic_sunrise", "Quyosh chiqish",
-                                  currentDayModel!.sunrise!)
+                                  provider.currentDayModel!.sunrise!)
                             ],
                           ),
                           Padding(
@@ -400,11 +331,11 @@ class _WeatherMainPageState extends State<WeatherMainPage>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 iconicText("ic_raindrops", "Namlik",
-                                    currentDayModel!.humidity!),
+                                    provider.currentDayModel!.humidity!),
                                 iconicText("ic_moon_line", "Oy holati",
-                                    currentDayModel!.moon!),
+                                    provider.currentDayModel!.moon!),
                                 iconicText("ic_sunset", "Quyosh botishi",
-                                    currentDayModel!.sunset!)
+                                    provider.currentDayModel!.sunset!)
                               ],
                             ),
                           )
@@ -428,8 +359,8 @@ class _WeatherMainPageState extends State<WeatherMainPage>
           ),
           SizedBox(
             height: 250,
-            child: weeklyModel != null
-                ? loadWeekly()
+            child: provider.weeklyModel != null
+                ? loadWeeklyForecastList(provider)
                 : const CupertinoActivityIndicator(
                     animating: true,
                     color: Colors.white,
@@ -438,123 +369,6 @@ class _WeatherMainPageState extends State<WeatherMainPage>
           ),
         ],
       ),
-    );
-  }
-
-  Widget loadWeekly() {
-    return Flexible(
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 25),
-        physics: const BouncingScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        shrinkWrap: true,
-        itemCount: weeklyModel!.length,
-        itemBuilder: (context, index) {
-          var model = weeklyModel![index];
-          return itemWeeklyForecast(
-            () => setState(() {
-              _index = model.date!;
-            }),
-            isPressed: _index == model.date,
-            weekDay: model.weekDay!.substring(0, 3),
-            date: model.date!.substring(0, 7),
-            situation: model.condition!,
-            temperature: model.temp!,
-            proximity: model.rainProb!,
-          );
-        },
-      ),
-    );
-  }
-
-  Widget loading() {
-    return Center(
-        child: Row(
-      children: const [
-        CupertinoActivityIndicator(
-          animating: true,
-          color: Colors.white,
-          radius: 7,
-        ),
-        SizedBox(
-          width: 5,
-        ),
-        Text(
-          "Updating...",
-          style: TextStyle(fontSize: 15, color: Colors.white),
-        ),
-      ],
-    ));
-  }
-
-  Widget updated() {
-    return const Center(
-      child: Text(
-        "Update",
-        style: TextStyle(fontSize: 15, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget location(List<CitiesModel> citiesModel) {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton(
-          menuMaxHeight: 300,
-          value: dropdownValue,
-          alignment: Alignment.center,
-          borderRadius: BorderRadius.circular(10),
-          icon: const Visibility(
-            visible: false,
-            child: Icon(Icons.location_on_rounded),
-          ),
-          underline: null,
-          onChanged: (String? newValue) {
-            setState(() {
-              dropdownValue = newValue!;
-            });
-            for (var element in citiesModel) {
-              if (element.cityName == newValue) {
-                loadWeather(element);
-              }
-            }
-          },
-          items: citiesModel.map((CitiesModel e) {
-            return DropdownMenuItem(
-              value: e.cityName,
-              child: Text(
-                textAlign: TextAlign.center,
-                e.cityName!,
-                style: const TextStyle(
-                  fontSize: 20,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            );
-          }).toList()),
-    );
-  }
-}
-
-class GradientText extends StatelessWidget {
-  const GradientText(
-    this.text, {
-    required this.gradient,
-    this.style,
-  });
-
-  final String text;
-  final TextStyle? style;
-  final Gradient gradient;
-
-  @override
-  Widget build(BuildContext context) {
-    return ShaderMask(
-      blendMode: BlendMode.srcIn,
-      shaderCallback: (bounds) => gradient.createShader(
-        Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-      ),
-      child: Text(text, style: style),
     );
   }
 }
