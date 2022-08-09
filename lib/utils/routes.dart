@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:weather_app/ui/weather_ui.dart';
+import 'package:weather_app/ui/weather/weather_page.dart';
 
 class Routes {
   static const mainPage = "/mainPage";
